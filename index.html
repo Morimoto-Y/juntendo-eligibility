@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Juntendo University — Graduate Eligibility Check</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;min-height:100vh;padding:2rem 1rem;color:#1a1a18}
+.app{max-width:620px;margin:0 auto;background:#fff;border-radius:12px;border:0.5px solid #d3d1c7;padding:1.5rem}
+.hdr h1{font-size:17px;font-weight:500;margin-bottom:3px}
+.hdr p{font-size:12px;color:#5f5e5a;margin-bottom:1.5rem}
+.prog-bar{display:flex;gap:4px;margin-bottom:1.25rem}
+.pb{height:4px;flex:1;border-radius:2px;background:#d3d1c7;transition:background .3s}
+.pb.done{background:#185FA5}.pb.active{background:#85B7EB}
+.step-info{font-size:11px;color:#888780;margin-bottom:.75rem}
+.q-label{font-size:15px;font-weight:500;margin-bottom:.25rem;line-height:1.4}
+.q-sub{font-size:12px;color:#5f5e5a;margin-bottom:1rem;line-height:1.5}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;border:0.5px solid #b4b2a9;cursor:pointer;background:#fff;transition:border-color .15s,background .15s;text-align:left;width:100%;font-size:14px;color:#1a1a18}
+.opt:hover{border-color:#5f5e5a;background:#f5f4f0}
+.opt.selected{border-color:#185FA5;background:#E6F1FB;color:#0C447C}
+.opt-radio{width:16px;height:16px;border-radius:50%;border:0.5px solid #888780;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center}
+.opt.selected .opt-radio{background:#185FA5;border-color:#185FA5}
+.opt.selected .opt-radio::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff}
+.opt-text{line-height:1.4}
+.opt-sub{font-size:12px;color:#5f5e5a;margin-top:2px}
+.opt.selected .opt-sub{color:#185FA5;opacity:.8}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;gap:12px}
+.btn{padding:8px 20px;border-radius:8px;border:0.5px solid #b4b2a9;background:#fff;font-size:14px;cursor:pointer;color:#1a1a18;transition:background .15s}
+.btn:hover{background:#f5f4f0}
+.btn-primary{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-primary:hover{background:#0C447C}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.year-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.year-card{padding:10px 12px;border-radius:8px;border:0.5px solid #b4b2a9;background:#fff}
+.year-card-label{font-size:11px;color:#5f5e5a;margin-bottom:4px}
+.year-card-input{display:flex;align-items:center;gap:6px}
+.year-card-input input{width:60px;padding:5px 8px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:14px;background:#fff;color:#1a1a18}
+.year-card-input input:focus{outline:none;border-color:#185FA5}
+.year-card-input span{font-size:12px;color:#5f5e5a}
+.year-warn{font-size:11px;color:#A32D2D;margin-top:3px}
+.total-bar{margin-top:10px;padding:10px 14px;border-radius:8px;background:#f5f4f0;display:flex;justify-content:space-between;align-items:center}
+.total-bar span{font-size:13px;color:#5f5e5a}
+.result-section{display:flex;flex-direction:column;gap:10px;margin-bottom:1.25rem}
+.result-card{padding:12px 16px;border-radius:8px;border:0.5px solid #b4b2a9;background:#fff}
+.result-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px}
+.result-card-title{font-size:13px;font-weight:500}
+.badge{display:inline-block;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge.q{background:#EAF3DE;color:#27500A}
+.badge.nc{background:#FAEEDA;color:#633806}
+.badge.nq{background:#FCEBEB;color:#791F1F}
+.result-card-note{font-size:12px;color:#5f5e5a;line-height:1.6}
+.overall-card{padding:14px 16px;border-radius:12px;border:1.5px solid #b4b2a9;background:#fff;margin-bottom:1rem}
+.overall-label{font-size:11px;color:#5f5e5a;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.overall-result{font-size:18px;font-weight:500;margin-bottom:6px}
+.overall-result.q{color:#27500A}
+.overall-result.nc{color:#633806}
+.overall-result.nq{color:#791F1F}
+.contact-box{margin-top:10px;padding:10px 14px;border-radius:8px;background:#f5f4f0;font-size:13px;color:#5f5e5a;line-height:1.6}
+.contact-box a{color:#185FA5}
+.summary-card{padding:12px 16px;border-radius:8px;border:0.5px solid #d3d1c7;background:#f5f4f0;margin-bottom:1rem;font-size:12px;color:#5f5e5a;line-height:1.8}
+.summary-card .row{display:flex;gap:8px}
+.summary-card .lbl{min-width:140px;color:#888780}
+.summary-card .val{color:#1a1a18;font-weight:500}
+.nick-input{width:100%;padding:8px 12px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:15px;background:#fff;color:#1a1a18;margin-top:4px}
+.nick-input:focus{outline:none;border-color:#185FA5}
+.error-msg{font-size:12px;color:#A32D2D;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script>
+const STEPS=['nick','program','degree','years','leave','lang','result'];
+const MIN_YEARS={master:16,doctor:17};
+const DEGREE_OPTS={
+  master:[
+    {val:'bachelor4',label:"4-year Bachelor's degree",sub:"Standard undergraduate degree (e.g. BSc, BA)"},
+    {val:'bachelor3',label:"3-year Bachelor's degree",sub:"e.g. UK BSc, some European/Australian programs"},
+    {val:'other',label:"Other",sub:""}
+  ],
+  doctor:[
+    {val:'med6',label:"6-year medical/dental/pharmacy/veterinary degree",sub:"e.g. MD (Japan), DDS, 6-year programs"},
+    {val:'med5',label:"5-year medical degree",sub:"e.g. MBBS/MBChB in China, UK, some other countries"},
+    {val:'master',label:"Master's degree",sub:"Completed graduate (Master's) program"},
+    {val:'bachelor4',label:"4-year Bachelor's degree",sub:"Standard undergraduate degree"},
+    {val:'bachelor3',label:"3-year Bachelor's degree",sub:"e.g. UK BSc, some European programs"},
+    {val:'research',label:"Bachelor's + 2 or more years of research",sub:"Post-degree research at a university or research institute"},
+    {val:'other',label:"Other",sub:""}
+  ]
+};
+const DEGREE_LABEL={bachelor4:"4-year Bachelor's",bachelor3:"3-year Bachelor's",med5:"5-year medical degree",med6:"6-year medical/dental degree",master:"Master's degree",research:"Bachelor's + research",other:"Other"};
+const LANG_OPTS=[
+  {val:'toefl_ibt',label:'TOEFL iBT'},
+  {val:'toefl_pbt',label:'TOEFL PBT/ITP'},
+  {val:'ielts',label:'IELTS'},
+  {val:'toeic',label:'TOEIC'},
+  {val:'none',label:'I have not taken any of these tests'}
+];
+const LANG_MIN={
+  master:{toefl_ibt:60,toefl_pbt:500,ielts:5.5,toeic:600},
+  doctor:{toefl_ibt:76,toefl_pbt:540,ielts:6.0,toeic:700}
+};
+const state={
+  step:0,nickname:'',program:null,degree:null,
+  leaveAbsence:null,leaveMonths:0,
+  years:{elementary:'',middle:'',high:'',undergrad:'',grad:''},
+  langTest:null,langScore:'',langDate:'',
+  assessmentDate:new Date().toLocaleDateString('en-CA')
+};
+function preUnivTotal(){const y=state.years;return(parseFloat(y.elementary)||0)+(parseFloat(y.middle)||0)+(parseFloat(y.high)||0);}
+function ugYears(){return parseFloat(state.years.undergrad)||0;}
+function gradYears(){return parseFloat(state.years.grad)||0;}
+function showGradField(){return state.program==='doctor'&&state.degree==='master';}
+function totalYears(){let t=preUnivTotal()+ugYears();if(showGradField())t+=gradYears();return t;}
+function effectiveYears(){return totalYears()-(state.leaveMonths||0)/12;}
+function isValidDate(d){return d&&new Date(d)>=new Date('2020-08-01');}
+const SKIP_NOTE=' If you completed your studies through grade skipping or early admission, please state this clearly in your formal application.';
+function ugMinYears(){const d=state.degree;if(d==='bachelor3')return 3;if(d==='med5')return 5;if(d==='med6')return 6;if(d==='master')return 3;return 4;}
+function judgeAcademic(){
+  const deg=state.degree;
+  if(deg==='other')return{status:'nc',note:'Your educational background requires individual review by the admissions office.'};
+  if(deg==='research')return{status:'nc',note:"Bachelor's + 2 or more years of research may qualify under special provisions. Individual review required."};
+  const preU=preUnivTotal(),ug=ugYears(),grad=gradYears(),ugMin=ugMinYears(),min=MIN_YEARS[state.program],eff=effectiveYears();
+  if(preU>0&&preU<12)return{status:'nq',note:`Pre-university total: ${preU.toFixed(1)} yrs — minimum 12 years required.${SKIP_NOTE}`};
+  if(ug>0&&ug<ugMin)return{status:'nq',note:`Undergraduate years entered (${ug} yrs) are below the minimum for a ${DEGREE_LABEL[deg]} (${ugMin} yrs).${SKIP_NOTE}`};
+  if(showGradField()&&grad>0&&grad<2)return{status:'nq',note:`Master's program years entered (${grad} yrs) are below the minimum of 2 years.${SKIP_NOTE}`};
+  if(eff<min){const leavePart=state.leaveMonths>0?` (after subtracting ${state.leaveMonths} months of leave)`:'';return{status:'nq',note:`Total effective years: ${eff.toFixed(1)} yrs${leavePart} — minimum ${min} years required.${SKIP_NOTE}`};}
+  let note=`Total effective years: ${eff.toFixed(1)} yrs (min. ${min} required).`;
+  if(deg==='bachelor3')note=`3-year Bachelor's degree confirmed. ${note}`;
+  if(deg==='med5')note=`5-year medical degree confirmed. ${note}`;
+  return{status:'q',note};
+}
+function judgeLang(){
+  const t=state.langTest;
+  if(!t||t==='none')return{status:'nc',note:'No qualifying language test score provided. A valid score is required to apply.'};
+  if(!isValidDate(state.langDate))return{status:'nq',note:'Test date is before August 1, 2020. Only scores from August 1, 2020 or later are accepted.'};
+  const score=parseFloat(state.langScore);
+  if(isNaN(score))return{status:'nc',note:'Please enter a valid score.'};
+  const threshold=LANG_MIN[state.program][t];
+  if(score>=threshold){let note=`${LANG_OPTS.find(o=>o.val===t).label}: ${score} (min. ${threshold} required). Score date confirmed valid.`;if(t==='toefl_ibt')note+=' Note: TOEFL My Best™ scores are not accepted — please ensure your score is from a single test date.';return{status:'q',note};}
+  return{status:'nq',note:`Score: ${score} — below the required minimum of ${threshold}.`};
+}
+function overallStatus(items){if(items.some(i=>i.status==='nq'))return'nq';if(items.some(i=>i.status==='nc'))return'nc';return'q';}
+const BADGE_LABEL={q:'Qualified',nc:'Need confirmation',nq:'Not qualified'};
+const OVERALL_LABEL={q:'Appears eligible to apply',nc:'Further confirmation needed',nq:'Does not meet requirements'};
+function badge(s){return`<span class="badge ${s}">${BADGE_LABEL[s]}</span>`;}
+function renderStep(){
+  const app=document.getElementById('app');
+  const si=state.step,totalS=STEPS.length-1;
+  const progress=STEPS.map((_,i)=>{const cls=i<si?'done':i===si?'active':'';return`<div class="pb ${cls}"></div>`;}).join('');
+  let content='';
+  if(si===0){content=`<div class="q-label">Welcome — please enter a nickname to begin</div><div class="q-sub">No personal information is collected. Your nickname is used only to label your results.</div><input class="nick-input" type="text" maxlength="30" placeholder="e.g. Applicant A" value="${state.nickname}" oninput="state.nickname=this.value;renderStep()">`;}
+  else if(si===1){content=`<div class="step-info">Step 1 of ${totalS-1}</div><div class="q-label">Which program are you applying to?</div><div class="q-sub">Select the graduate program you intend to pursue at Juntendo University.</div><div class="opts"><button class="opt ${state.program==='master'?'selected':''}" onclick="pick('program','master')"><div class="opt-radio"></div><div class="opt-text">Master's program (修士課程)<div class="opt-sub">2-year graduate program leading to Master's degree</div></div></button><button class="opt ${state.program==='doctor'?'selected':''}" onclick="pick('program','doctor')"><div class="opt-radio"></div><div class="opt-text">Doctoral program (博士課程)<div class="opt-sub">4-year graduate program leading to PhD/MD</div></div></button></div>`;}
+  else if(si===2){const opts=DEGREE_OPTS[state.program];content=`<div class="step-info">Step 2 of ${totalS-1}</div><div class="q-label">What is your highest completed degree?</div><div class="q-sub">Select the degree you have completed or expect to complete by the time of enrollment.</div><div class="opts">${opts.map(o=>`<button class="opt ${state.degree===o.val?'selected':''}" onclick="pick('degree','${o.val}')"><div class="opt-radio"></div><div class="opt-text">${o.label}${o.sub?`<div class="opt-sub">${o.sub}</div>`:''}</div></button>`).join('')}</div>`;}
+  else if(si===3){
+    const min=MIN_YEARS[state.program],ugMin=ugMinYears(),showGrad=showGradField();
+    const preU=preUnivTotal(),ug=ugYears(),grad=gradYears();
+    const preUWarn=preU>0&&preU<12?`<div class="year-warn">Total below 12 yrs — minimum required</div>`:'';
+    const ugWarn=ug>0&&ug<ugMin?`<div class="year-warn">Expected min. ${ugMin} yrs for ${DEGREE_LABEL[state.degree]}</div>`:'';
+    const gradWarn=showGrad&&grad>0&&grad<2?`<div class="year-warn">Expected min. 2 yrs for Master's</div>`:'';
+    content=`<div class="step-info">Step 3 of ${totalS-1}</div><div class="q-label">Years of schooling</div><div class="q-sub">Enter actual years attended at each level, excluding any leave of absence. Decimals allowed (e.g. 3.5).</div><div style="margin-bottom:8px;font-size:12px;color:#5f5e5a">Pre-university (min. 12 yrs combined)</div><div class="year-grid" style="margin-bottom:4px"><div class="year-card"><div class="year-card-label">Elementary school</div><div class="year-card-input"><input type="number" min="0" max="12" step="0.5" value="${state.years.elementary}" oninput="setYear('elementary',this.value)" placeholder="e.g. 6"><span>yrs</span></div></div><div class="year-card"><div class="year-card-label">Middle school</div><div class="year-card-input"><input type="number" min="0" max="8" step="0.5" value="${state.years.middle}" oninput="setYear('middle',this.value)" placeholder="e.g. 3"><span>yrs</span></div></div><div class="year-card"><div class="year-card-label">High school</div><div class="year-card-input"><input type="number" min="0" max="6" step="0.5" value="${state.years.high}" oninput="setYear('high',this.value)" placeholder="e.g. 3"><span>yrs</span></div></div><div class="year-card" style="background:#f5f4f0"><div class="year-card-label" style="font-weight:500">Pre-university total</div><div style="font-size:16px;font-weight:500;padding-top:4px">${preU>0?preU.toFixed(1):'—'} yrs</div>${preUWarn}</div></div><div style="margin-top:12px;margin-bottom:8px;font-size:12px;color:#5f5e5a">Higher education</div><div class="year-grid"><div class="year-card"><div class="year-card-label">Undergraduate (min. ${ugMin} yrs)</div><div class="year-card-input"><input type="number" min="0" max="10" step="0.5" value="${state.years.undergrad}" oninput="setYear('undergrad',this.value)" placeholder="e.g. ${ugMin}"><span>yrs</span></div>${ugWarn}</div>${showGrad?`<div class="year-card"><div class="year-card-label">Graduate / Master's (min. 2 yrs)</div><div class="year-card-input"><input type="number" min="0" max="6" step="0.5" value="${state.years.grad}" oninput="setYear('grad',this.value)" placeholder="e.g. 2"><span>yrs</span></div>${gradWarn}</div>`:''}</div><div class="total-bar"><span>Total years</span><strong>${totalYears()>0?totalYears().toFixed(1):'—'} yrs <span style="font-size:12px;font-weight:400;color:#5f5e5a">(min. ${min} required)</span></strong></div>`;
+  }
+  else if(si===4){content=`<div class="step-info">Step 4 of ${totalS-1}</div><div class="q-label">Did you take a leave of absence of one semester or more?</div><div class="q-sub">Leave periods are not counted as schooling time and will be subtracted from your total.</div><div class="opts"><button class="opt ${state.leaveAbsence==='no'?'selected':''}" onclick="pick('leaveAbsence','no')"><div class="opt-radio"></div><div class="opt-text">No — I had no leave of absence</div></button><button class="opt ${state.leaveAbsence==='yes'?'selected':''}" onclick="pick('leaveAbsence','yes')"><div class="opt-radio"></div><div class="opt-text">Yes — I took a leave of absence</div></button></div>${state.leaveAbsence==='yes'?`<div style="margin-top:12px"><div class="q-sub">Total duration of leave:</div><div style="display:flex;align-items:center;gap:8px"><input type="number" min="1" max="60" step="1" value="${state.leaveMonths||''}" oninput="setLeaveMonths(this.value)" placeholder="e.g. 12" style="width:90px;padding:6px 10px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:14px;background:#fff;color:#1a1a18"><span style="font-size:13px;color:#5f5e5a">months</span></div></div>`:''}`;  }
+  else if(si===5){
+    const mins=LANG_MIN[state.program];
+    content=`<div class="step-info">Step 5 of ${totalS-1}</div><div class="q-label">English language proficiency</div><div class="q-sub">Scores must be dated August 1, 2020 or later. TOEFL My Best™ scores are not accepted.</div><div class="opts" style="margin-bottom:12px">${LANG_OPTS.map(o=>`<button class="opt ${state.langTest===o.val?'selected':''}" onclick="pick('langTest','${o.val}')"><div class="opt-radio"></div><div class="opt-text">${o.label}${o.val!=='none'?`<div class="opt-sub">Minimum: ${mins[o.val]}${o.val==='ielts'?' (overall band)':' points'}</div>`:''}</div></button>`).join('')}</div>${state.langTest&&state.langTest!=='none'?`<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:#5f5e5a;min-width:64px">Score</span><input type="number" min="0" max="990" step="${state.langTest==='ielts'?'0.5':'1'}" value="${state.langScore}" oninput="state.langScore=this.value;renderStep()" placeholder="${state.langTest==='ielts'?'e.g. 6.0':'e.g. 80'}" style="width:110px;padding:6px 10px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:14px;background:#fff;color:#1a1a18"></div><div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:#5f5e5a;min-width:64px">Test date</span><input type="date" value="${state.langDate}" oninput="state.langDate=this.value;renderStep()" style="padding:6px 10px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:14px;background:#fff;color:#1a1a18"></div>${state.langDate&&!isValidDate(state.langDate)?`<div class="error-msg">Score must be from August 1, 2020 or later.</div>`:''}</div>`:''}`;
+  }
+  else if(si===6){
+    const yr=judgeAcademic(),lg=judgeLang();
+    const items=[{label:'Academic background',...yr},{label:'Language proficiency',...lg}];
+    const overall=overallStatus(items),nick=state.nickname||'Anonymous';
+    const exportData=JSON.stringify({version:'4b',nickname:nick,assessmentDate:state.assessmentDate,program:state.program,degree:state.degree,years:{elementary:state.years.elementary,middle:state.years.middle,high:state.years.high,undergrad:state.years.undergrad,grad:state.years.grad,preUniversity:parseFloat(preUnivTotal().toFixed(2)),total:parseFloat(totalYears().toFixed(2)),leaveMonths:state.leaveMonths,effective:parseFloat(effectiveYears().toFixed(2))},language:{test:state.langTest,score:state.langScore,date:state.langDate},results:{academic:yr.status,language:lg.status,overall}},null,2);
+    content=`<div class="step-info">Results</div><div class="summary-card"><div class="row"><span class="lbl">Nickname</span><span class="val">${nick}</span></div><div class="row"><span class="lbl">Assessment date</span><span class="val">${state.assessmentDate}</span></div><div class="row"><span class="lbl">Program</span><span class="val">${state.program==='master'?"Master's program":"Doctoral program"}</span></div><div class="row"><span class="lbl">Highest degree</span><span class="val">${DEGREE_LABEL[state.degree]||'—'}</span></div><div class="row"><span class="lbl">Total / effective yrs</span><span class="val">${totalYears().toFixed(1)} / ${effectiveYears().toFixed(1)} yrs</span></div><div class="row"><span class="lbl">Leave of absence</span><span class="val">${state.leaveAbsence==='yes'?state.leaveMonths+' months':'None'}</span></div><div class="row"><span class="lbl">Language test</span><span class="val">${state.langTest&&state.langTest!=='none'?(LANG_OPTS.find(o=>o.val===state.langTest)?.label+' — '+state.langScore):'Not provided'}</span></div></div><div class="result-section">${items.map(item=>`<div class="result-card"><div class="result-card-header"><div class="result-card-title">${item.label}</div>${badge(item.status)}</div><div class="result-card-note">${item.note}</div></div>`).join('')}</div><div class="overall-card"><div class="overall-label">Overall assessment</div><div class="overall-result ${overall}">${OVERALL_LABEL[overall]}</div><div class="result-card-note">This is a preliminary indication only. Official eligibility is determined by the Graduate Admissions Office.</div><div class="contact-box">To request a formal preliminary eligibility review, contact:<br><a href="mailto:gsm_nyushi@juntendo.ac.jp">gsm_nyushi@juntendo.ac.jp</a><br><span style="font-size:11px;color:#888780">Please attach your academic transcripts and language test certificate.</span></div></div><details style="margin-top:.5rem"><summary style="cursor:pointer;font-size:12px;color:#5f5e5a;padding:6px 0">View application data (JSON)</summary><pre style="margin-top:8px;padding:10px;background:#f5f4f0;border-radius:8px;overflow-x:auto;font-size:11px;line-height:1.5;font-family:monospace;color:#5f5e5a">${exportData}</pre></details>`;
+  }
+  const isResult=si===6,canNext=canProceed();
+  app.innerHTML=`<div class="hdr"><h1>Juntendo University — Graduate Eligibility Check</h1><p>Preliminary check only. Does not constitute an official application or eligibility determination.</p></div><div class="prog-bar">${progress}</div>${content}${!isResult?`<div class="nav"><button class="btn" onclick="goBack()" ${si===0?'disabled':''}>Back</button><button class="btn btn-primary" onclick="goNext()" ${canNext?'':'disabled'}>${si===STEPS.length-2?'See results':'Next'}</button></div>`:`<div class="nav"><button class="btn" onclick="restart()">Start over</button></div>`}`;
+}
+function pick(f,v){state[f]=v;if(f==='leaveAbsence'&&v==='no')state.leaveMonths=0;renderStep();}
+function setYear(k,v){state.years[k]=v;renderStep();}
+function setLeaveMonths(v){state.leaveMonths=parseFloat(v)||0;renderStep();}
+function canProceed(){
+  const si=state.step;
+  if(si===0)return state.nickname.trim().length>0;
+  if(si===1)return!!state.program;
+  if(si===2)return!!state.degree;
+  if(si===3){if(state.degree==='other'||state.degree==='research')return true;return totalYears()>0;}
+  if(si===4){if(state.leaveAbsence==='no')return true;if(state.leaveAbsence==='yes'&&state.leaveMonths>0)return true;return false;}
+  if(si===5){if(state.langTest==='none')return true;if(state.langTest&&state.langScore&&state.langDate)return true;return false;}
+  return true;
+}
+function goNext(){if(!canProceed())return;state.step=Math.min(state.step+1,STEPS.length-1);renderStep();}
+function goBack(){state.step=Math.max(state.step-1,0);renderStep();}
+function restart(){Object.assign(state,{step:0,nickname:'',program:null,degree:null,leaveAbsence:null,leaveMonths:0,years:{elementary:'',middle:'',high:'',undergrad:'',grad:''},langTest:null,langScore:'',langDate:'',assessmentDate:new Date().toLocaleDateString('en-CA')});renderStep();}
+renderStep();
+</script>
+</body>
+</html>
