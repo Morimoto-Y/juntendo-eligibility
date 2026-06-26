@@ -25,6 +25,14 @@ A step-by-step web form that checks whether an international applicant appears t
 | **Need confirmation** | Requires individual review by admissions office |
 | **Not qualified** | Does not appear to meet requirements |
 
+Each criterion (Academic background, Language proficiency) is judged individually. No overall verdict is displayed — only the individual results are shown.
+
+For **Doctoral applicants**, the results screen shows **two separate result blocks**:
+- **Graduate School of Medicine** — uses the higher doctoral language thresholds
+- **Graduate School of Nursing** — uses the lower (Master's-level) language thresholds
+
+The line *"This is a preliminary indication only. Official eligibility is determined by the Graduate Admissions Office."* is displayed at the bottom of all results screens.
+
 ### Important limitations
 - Does not check nationality or visa status (handled separately by admissions)
 - Does not verify actual documents
@@ -77,12 +85,14 @@ There are no frameworks, build tools, or external dependencies. The file contain
 
 ### Language requirements
 
-| Test | Master's minimum | Doctoral minimum |
-|------|-----------------|-----------------|
-| TOEFL iBT | 60 | 76 |
-| TOEFL PBT/ITP | 500 | 540 |
-| IELTS | 5.5 | 6.0 |
-| TOEIC | 600 | 700 |
+| Test | Master's minimum | Doctoral (Medicine) minimum | Doctoral (Nursing) minimum |
+|------|-----------------|----------------------------|---------------------------|
+| TOEFL iBT | 60 | 76 | 60 |
+| TOEFL PBT/ITP | 500 | 540 | 500 |
+| IELTS | 5.5 | 6.0 | 5.5 |
+| TOEIC | 600 | 700 | 600 |
+
+> When the Doctoral program is selected, the results screen displays two separate result blocks: one for Graduate School of Medicine and one for Graduate School of Nursing, each using the thresholds above. The Step 5 language selection screen also shows both thresholds (Med / Nurs) for Doctoral applicants.
 
 **Score validity:** August 1, 2020 or later only.
 **TOEFL My Best™ scores:** Not accepted. A note is shown to qualified TOEFL iBT applicants as a reminder.
@@ -151,6 +161,21 @@ index.htmlの結果画面の連絡先説明文を変更してください。
 変更後、git add . && git commit -m "update: contact note text" && git push を実行してください。
 ```
 
+**F. Update doctoral Nursing language thresholds**
+
+Example prompt:
+```
+index.htmlの博士課程・看護学研究科の語学スコアの最低基準を変更してください。
+LANG_MIN.masterの値を以下に更新してください：
+  toefl_ibt: [新スコア]
+  toefl_pbt: [新スコア]
+  ielts: [新スコア]
+  toeic: [新スコア]
+変更後、git add . && git commit -m "update: doctoral nursing language thresholds" && git push を実行してください。
+```
+
+Note: The Nursing doctoral thresholds reuse the `master` entry in `LANG_MIN`. To change them independently of the Master's program thresholds, a separate `LANG_MIN.doctor_nursing` entry would need to be added to the code first.
+
 ---
 
 ## 5. Deployment
@@ -204,4 +229,4 @@ When asking Claude Code (or any AI) to modify this file:
 
 ---
 
-*Last updated: March 2026*
+*Last updated: June 2026*
