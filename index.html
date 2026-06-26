@@ -131,13 +131,13 @@ function judgeAcademic(){
   if(deg==='med5')note=`5-year medical degree confirmed. ${note}`;
   return{status:'q',note};
 }
-function judgeLang(){
+function judgeLang(prog){
   const t=state.langTest;
   if(!t||t==='none')return{status:'nc',note:'No qualifying language test score provided. A valid score is required to apply.'};
   if(!isValidDate(state.langDate))return{status:'nq',note:'Test date is before August 1, 2020. Only scores from August 1, 2020 or later are accepted.'};
   const score=parseFloat(state.langScore);
   if(isNaN(score))return{status:'nc',note:'Please enter a valid score.'};
-  const threshold=LANG_MIN[state.program][t];
+  const threshold=LANG_MIN[prog||state.program][t];
   if(score>=threshold){let note=`${LANG_OPTS.find(o=>o.val===t).label}: ${score} (min. ${threshold} required). Score date confirmed valid.`;if(t==='toefl_ibt')note+=' Note: TOEFL My Best™ scores are not accepted — please ensure your score is from a single test date.';return{status:'q',note};}
   return{status:'nq',note:`Score: ${score} — below the required minimum of ${threshold}.`};
 }
@@ -168,10 +168,19 @@ function renderStep(){
   }
   else if(si===6){
     const yr=judgeAcademic(),lg=judgeLang();
-    const items=[{label:'Academic background',...yr},{label:'Language proficiency',...lg}];
-    const overall=overallStatus(items),nick=state.nickname||'Anonymous';
-    const exportData=JSON.stringify({version:'4b',nickname:nick,assessmentDate:state.assessmentDate,program:state.program,degree:state.degree,years:{elementary:state.years.elementary,middle:state.years.middle,high:state.years.high,undergrad:state.years.undergrad,grad:state.years.grad,preUniversity:parseFloat(preUnivTotal().toFixed(2)),total:parseFloat(totalYears().toFixed(2)),leaveMonths:state.leaveMonths,effective:parseFloat(effectiveYears().toFixed(2))},language:{test:state.langTest,score:state.langScore,date:state.langDate},results:{academic:yr.status,language:lg.status,overall}},null,2);
-    content=`<div class="step-info">Results</div><div class="summary-card"><div class="row"><span class="lbl">Nickname</span><span class="val">${nick}</span></div><div class="row"><span class="lbl">Assessment date</span><span class="val">${state.assessmentDate}</span></div><div class="row"><span class="lbl">Program</span><span class="val">${state.program==='master'?"Master's program":"Doctoral program"}</span></div><div class="row"><span class="lbl">Highest degree</span><span class="val">${DEGREE_LABEL[state.degree]||'—'}</span></div><div class="row"><span class="lbl">Total / effective yrs</span><span class="val">${totalYears().toFixed(1)} / ${effectiveYears().toFixed(1)} yrs</span></div><div class="row"><span class="lbl">Leave of absence</span><span class="val">${state.leaveAbsence==='yes'?state.leaveMonths+' months':'None'}</span></div><div class="row"><span class="lbl">Language test</span><span class="val">${state.langTest&&state.langTest!=='none'?(LANG_OPTS.find(o=>o.val===state.langTest)?.label+' — '+state.langScore):'Not provided'}</span></div></div><div class="result-section">${items.map(item=>`<div class="result-card"><div class="result-card-header"><div class="result-card-title">${item.label}</div>${badge(item.status)}</div><div class="result-card-note">${item.note}</div></div>`).join('')}</div><div class="overall-card"><div class="overall-label">Overall assessment</div><div class="overall-result ${overall}">${OVERALL_LABEL[overall]}</div><div class="result-card-note">This is a preliminary indication only. Official eligibility is determined by the Graduate Admissions Office.</div><div class="contact-box">To request a formal preliminary eligibility review, contact:<br><a href="mailto:gsm_nyushi@juntendo.ac.jp">gsm_nyushi@juntendo.ac.jp</a><br><span style="font-size:11px;color:#888780">Please prepare copies of your academic transcript, diploma, and language test certificate.</span></div></div>`;
+    const nick=state.nickname||'Anonymous';
+    const cardHTML=(item)=>`<div class="result-card"><div class="result-card-header"><div class="result-card-title">${item.label}</div>${badge(item.status)}</div><div class="result-card-note">${item.note}</div></div>`;
+    let resultSections;
+    if(state.program==='doctor'){
+      const lgNurs=judgeLang('master');
+      const medItems=[{label:'Academic background',...yr},{label:'Language proficiency',...lg}];
+      const nursItems=[{label:'Academic background',...yr},{label:'Language proficiency',...lgNurs}];
+      resultSections=`<div style="margin-bottom:4px;font-size:13px;font-weight:600;color:#1a1a18">Graduate School of Medicine</div><div class="result-section" style="margin-bottom:16px">${medItems.map(cardHTML).join('')}</div><div style="margin-bottom:4px;font-size:13px;font-weight:600;color:#1a1a18">Graduate School of Nursing</div><div class="result-section">${nursItems.map(cardHTML).join('')}</div>`;
+    } else {
+      const items=[{label:'Academic background',...yr},{label:'Language proficiency',...lg}];
+      resultSections=`<div class="result-section">${items.map(cardHTML).join('')}</div>`;
+    }
+    content=`<div class="step-info">Results</div><div class="summary-card"><div class="row"><span class="lbl">Nickname</span><span class="val">${nick}</span></div><div class="row"><span class="lbl">Assessment date</span><span class="val">${state.assessmentDate}</span></div><div class="row"><span class="lbl">Program</span><span class="val">${state.program==='master'?"Master's program":"Doctoral program"}</span></div><div class="row"><span class="lbl">Highest degree</span><span class="val">${DEGREE_LABEL[state.degree]||'—'}</span></div><div class="row"><span class="lbl">Total / effective yrs</span><span class="val">${totalYears().toFixed(1)} / ${effectiveYears().toFixed(1)} yrs</span></div><div class="row"><span class="lbl">Leave of absence</span><span class="val">${state.leaveAbsence==='yes'?state.leaveMonths+' months':'None'}</span></div><div class="row"><span class="lbl">Language test</span><span class="val">${state.langTest&&state.langTest!=='none'?(LANG_OPTS.find(o=>o.val===state.langTest)?.label+' — '+state.langScore):'Not provided'}</span></div></div>${resultSections}<div class="overall-card"><div class="overall-label">Overall assessment</div><div class="result-card-note">This is a preliminary indication only. Official eligibility is determined by the Graduate Admissions Office.</div></div>`;
   }
   const isResult=si===6,canNext=canProceed();
   app.innerHTML=`<div class="hdr"><h1>Juntendo University — Graduate Eligibility Check</h1><p>Preliminary check only. Does not constitute an official application or eligibility determination.</p></div><div class="prog-bar">${progress}</div>${content}${!isResult?`<div class="nav"><button class="btn" onclick="goBack()" ${si===0?'disabled':''}>Back</button><button id="next-btn" class="btn btn-primary" onclick="goNext()" ${canNext?'':'disabled'}>${si===STEPS.length-2?'See results':'Next'}</button></div>`:`<div class="nav"><button class="btn" onclick="restart()">Start over</button></div>`}`;
