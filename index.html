@@ -125,7 +125,10 @@ function judgeAcademic(){
   if(preU>0&&preU<12)return{status:'nq',note:`Pre-university total: ${preU.toFixed(1)} yrs — minimum 12 years required.${SKIP_NOTE}`};
   if(ug>0&&ug<ugMin)return{status:'nq',note:`Undergraduate years entered (${ug} yrs) are below the minimum for a ${DEGREE_LABEL[deg]} (${ugMin} yrs).${SKIP_NOTE}`};
   if(showGradField()&&grad>0&&grad<2)return{status:'nq',note:`Master's program years entered (${grad} yrs) are below the minimum of 2 years.${SKIP_NOTE}`};
-  if(eff<min){const leavePart=state.leaveMonths>0?` (after subtracting ${state.leaveMonths} months of leave)`:'';return{status:'nq',note:`Total effective years: ${eff.toFixed(1)} yrs${leavePart} — minimum ${min} years required.${SKIP_NOTE}`};}
+  if(eff<min){
+    if(deg==='bachelor3'&&state.program==='master')return{status:'nc',note:"A 3-year Bachelor's degree may satisfy entry requirements for certain programs. Please contact the Graduate Admissions Office to confirm your eligibility."};
+    const leavePart=state.leaveMonths>0?` (after subtracting ${state.leaveMonths} months of leave)`:'';return{status:'nq',note:`Total effective years: ${eff.toFixed(1)} yrs${leavePart} — minimum ${min} years required.${SKIP_NOTE}`};
+  }
   let note=`Total effective years: ${eff.toFixed(1)} yrs (min. ${min} required).`;
   if(deg==='bachelor3')note=`3-year Bachelor's degree confirmed. ${note}`;
   if(deg==='med5')note=`5-year medical degree confirmed. ${note}`;
