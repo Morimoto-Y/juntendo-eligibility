@@ -16,7 +16,7 @@ A step-by-step web form that checks whether an international applicant appears t
 
 ### What it checks
 1. **Academic background** — years of schooling and degree type
-2. **Language proficiency** — English test scores (TOEFL/IELTS/TOEIC)
+2. **English language proficiency** — English test scores (TOEFL/IELTS/TOEIC)
 
 ### Judgment results
 | Result | Meaning |
@@ -25,19 +25,20 @@ A step-by-step web form that checks whether an international applicant appears t
 | **Need confirmation** | Requires individual review by admissions office |
 | **Not qualified** | Does not appear to meet requirements |
 
-Each criterion (Academic background, Language proficiency) is judged individually. No overall verdict is displayed — only the individual results are shown.
+### Doctoral program: two result blocks
+When the Doctoral program is selected, the results page displays **two separate result blocks**:
+- **Graduate School of Medicine** — uses doctoral (Medicine) thresholds
+- **Graduate School of Nursing** — uses doctoral (Nursing) thresholds (same as Master's)
 
-For **Doctoral applicants**, the results screen shows **two separate result blocks**:
-- **Graduate School of Medicine** — uses the higher doctoral language thresholds
-- **Graduate School of Nursing** — uses the lower (Master's-level) language thresholds
-
-The line *"This is a preliminary indication only. Official eligibility is determined by the Graduate Admissions Office."* is displayed at the bottom of all results screens.
+Each block shows Academic background and Language proficiency results independently.
 
 ### Important limitations
 - Does not check nationality or visa status (handled separately by admissions)
 - Does not verify actual documents
 - Application deadline dates are intentionally excluded (they change annually)
 - Results are non-binding
+- The Overall Assessment verdict is not displayed; only individual check results are shown
+- The line "This is a preliminary indication only. Official eligibility is determined by the Graduate Admissions Office." appears at the bottom of the results page
 
 ---
 
@@ -75,6 +76,9 @@ There are no frameworks, build tools, or external dependencies. The file contain
 | 6-year medical/dental/pharmacy/veterinary | 6 years |
 | Master's degree (doctoral applicants) | 3 years (undergraduate) + 2 years (graduate) |
 
+**3-year Bachelor's degree (Master's program only):**
+If total effective years fall below 16, the judgment returns **Need confirmation** rather than Not qualified, as some programs may accept this background. Applicants are advised to contact the admissions office directly.
+
 **Leave of absence:** Entered in months and subtracted from total years before judgment.
 
 **Grade skipping / early admission:** If years fall short, a note is displayed advising applicants to disclose this in their formal application.
@@ -82,6 +86,15 @@ There are no frameworks, build tools, or external dependencies. The file contain
 **Special cases:**
 - `research` (Bachelor's + 2+ years research): Always → Need confirmation
 - `other`: Always → Need confirmation
+
+### Additional post-graduate study (optional field)
+An optional input field appears to the right of the Undergraduate input on Step 3, for all degree types **except** Doctoral + Master's degree (which already has a graduate years field).
+
+This field accepts years spent in post-graduate programs such as postgraduate diplomas, research programs, or bridging courses.
+
+- The value is **added to the Total years display** and shown on the results page
+- It does **NOT affect** the Qualified / Need confirmation / Not qualified judgment
+- Purpose: allows applicants to accurately represent their total years of education
 
 ### Language requirements
 
@@ -92,7 +105,7 @@ There are no frameworks, build tools, or external dependencies. The file contain
 | IELTS | 5.5 | 6.0 | 5.5 |
 | TOEIC | 600 | 700 | 600 |
 
-> When the Doctoral program is selected, the results screen displays two separate result blocks: one for Graduate School of Medicine and one for Graduate School of Nursing, each using the thresholds above. The Step 5 language selection screen also shows both thresholds (Med / Nurs) for Doctoral applicants.
+When Doctoral is selected, Step 5 displays both Med and Nurs thresholds for each test. The results page shows two separate Language proficiency blocks (Graduate School of Medicine and Graduate School of Nursing).
 
 **Score validity:** August 1, 2020 or later only.
 **TOEFL My Best™ scores:** Not accepted. A note is shown to qualified TOEFL iBT applicants as a reminder.
@@ -165,16 +178,31 @@ index.htmlの結果画面の連絡先説明文を変更してください。
 
 Example prompt:
 ```
-index.htmlの博士課程・看護学研究科の語学スコアの最低基準を変更してください。
-LANG_MIN.masterの値を以下に更新してください：
-  toefl_ibt: [新スコア]
-  toefl_pbt: [新スコア]
-  ielts: [新スコア]
-  toeic: [新スコア]
-変更後、git add . && git commit -m "update: doctoral nursing language thresholds" && git push を実行してください。
+index.htmlの看護博士課程の語学スコアの最低基準を変更してください。
+TOEFL iBT: 60 → （新しいスコア）
+変更後、git add . && git commit -m "update: nursing doctoral lang threshold" && git push を実行してください。
 ```
 
-Note: The Nursing doctoral thresholds reuse the `master` entry in `LANG_MIN`. To change them independently of the Master's program thresholds, a separate `LANG_MIN.doctor_nursing` entry would need to be added to the code first.
+**G. Change the judgment for 3-year Bachelor's (Master's program)**
+
+Example prompt:
+```
+index.htmlで、修士課程・3年制学士の場合に合計年数が16年未満の場合の
+判定を変更してください。
+現在: Need confirmation
+変更後: （新しい判定）
+変更後、git add . && git commit -m "fix: 3-year bachelor master judgment" && git push を実行してください。
+```
+
+**H. Update the optional post-graduate study field behavior**
+
+Example prompt:
+```
+index.htmlのAdditional post-graduate study (optional)フィールドについて、
+現在は合計年数の表示にのみ使用されています。
+このフィールドの扱いを変更してください：（変更内容を記述）
+変更後、git add . && git commit -m "update: post-graduate study field behavior" && git push を実行してください。
+```
 
 ---
 
@@ -210,7 +238,8 @@ For reference when asking Claude Code to make changes:
 |----------|----------|---------|
 | `MIN_YEARS` | top of script | Minimum total years per program |
 | `DEGREE_OPTS` | top of script | Degree options shown in Step 2 |
-| `LANG_MIN` | top of script | Language score thresholds |
+| `LANG_MIN` | top of script | Language score thresholds (Master's and Doctoral Medicine) |
+| `LANG_MIN_NURS_DR` | top of script | Language score thresholds for Doctoral Nursing |
 | `judgeAcademic()` | function | Academic background judgment logic |
 | `judgeLang()` | function | Language proficiency judgment logic |
 | `ugMinYears()` | function | Minimum undergraduate years by degree type |
