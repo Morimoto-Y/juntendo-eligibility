@@ -91,15 +91,16 @@ const DEGREE_OPTS={
 };
 const DEGREE_LABEL={bachelor4:"4-year Bachelor's",bachelor3:"3-year Bachelor's",med5:"5-year medical degree",med6:"6-year medical/dental degree",master:"Master's degree",research:"Bachelor's + research",other:"Other"};
 const LANG_OPTS=[
-  {val:'toefl_ibt',label:'TOEFL iBT'},
+  {val:'toefl_ibt_old',label:'TOEFL iBT (taken on or before January 20, 2026)'},
+  {val:'toefl_ibt_new',label:'TOEFL iBT (taken on or after January 21, 2026)'},
   {val:'toefl_pbt',label:'TOEFL PBT/ITP'},
   {val:'ielts',label:'IELTS'},
   {val:'toeic',label:'TOEIC'},
   {val:'none',label:'I have not taken any of these tests'}
 ];
 const LANG_MIN={
-  master:{toefl_ibt:60,toefl_pbt:500,ielts:5.5,toeic:600},
-  doctor:{toefl_ibt:76,toefl_pbt:540,ielts:6.0,toeic:700}
+  master:{toefl_ibt_old:60,toefl_pbt:500,ielts:5.5,toeic:600},
+  doctor:{toefl_ibt_old:76,toefl_pbt:540,ielts:6.0,toeic:700}
 };
 const state={
   step:0,nickname:'',program:null,degree:null,
@@ -116,7 +117,10 @@ function showPostgradField(){return!(state.program==='doctor'&&state.degree==='m
 function postgradYears(){return showPostgradField()?parseFloat(state.years.postgrad)||0:0;}
 function totalYears(){let t=preUnivTotal()+ugYears();if(showGradField())t+=gradYears();return t;}
 function effectiveYears(){return totalYears()-(state.leaveMonths||0)/12;}
-function isValidDate(d){return d&&new Date(d)>=new Date('2020-08-01');}
+function validityYear(){return new Date().getFullYear()-5;}
+function validityDateDisplay(){return`August 1, ${validityYear()}`;}
+function validityDateISO(){return`${validityYear()}-08-01`;}
+function isValidDate(d){return d&&new Date(d)>=new Date(validityDateISO());}
 const SKIP_NOTE=' If you completed your studies through grade skipping or early admission, please state this clearly in your formal application.';
 function ugMinYears(){const d=state.degree;if(d==='bachelor3')return 3;if(d==='med5')return 5;if(d==='med6')return 6;if(d==='master')return 3;return 4;}
 function judgeAcademic(){
@@ -139,17 +143,36 @@ function judgeAcademic(){
 function judgeLang(prog){
   const t=state.langTest;
   if(!t||t==='none')return{status:'nc',note:'No qualifying language test score provided. A valid score is required to apply.'};
-  if(!isValidDate(state.langDate))return{status:'nq',note:'Test date is before August 1, 2020. Only scores from August 1, 2020 or later are accepted.'};
+  if(!isValidDate(state.langDate))return{status:'nq',note:`Test date is before ${validityDateDisplay()}. Only scores from ${validityDateDisplay()} or later are accepted.`};
   const score=parseFloat(state.langScore);
   if(isNaN(score))return{status:'nc',note:'Please enter a valid score.'};
+  if(t==='toefl_ibt_new'){
+    if(prog==='master')return{status:'nc',note:`TOEFL iBT (on or after January 21, 2026): ${score}. Nursing program criteria not yet determined — requires confirmation with the admissions office.`};
+    const effectiveProg=prog||state.program;
+    const threshold=effectiveProg==='doctor'?4.0:3.5;
+    if(score>=threshold)return{status:'q',note:`${LANG_OPTS.find(o=>o.val===t).label}: ${score} (min. ${threshold} required). Score date confirmed valid.`};
+    return{status:'nq',note:`Score: ${score} — below the required minimum of ${threshold}.`};
+  }
   const threshold=LANG_MIN[prog||state.program][t];
-  if(score>=threshold){let note=`${LANG_OPTS.find(o=>o.val===t).label}: ${score} (min. ${threshold} required). Score date confirmed valid.`;if(t==='toefl_ibt')note+=' Note: TOEFL My Best™ scores are not accepted — please ensure your score is from a single test date.';return{status:'q',note};}
+  if(score>=threshold)return{status:'q',note:`${LANG_OPTS.find(o=>o.val===t).label}: ${score} (min. ${threshold} required). Score date confirmed valid.`};
   return{status:'nq',note:`Score: ${score} — below the required minimum of ${threshold}.`};
 }
 function overallStatus(items){if(items.some(i=>i.status==='nq'))return'nq';if(items.some(i=>i.status==='nc'))return'nc';return'q';}
 const BADGE_LABEL={q:'Qualified',nc:'Need confirmation',nq:'Not qualified'};
 const OVERALL_LABEL={q:'Appears eligible to apply',nc:'Further confirmation needed',nq:'Does not meet requirements'};
 function badge(s){return`<span class="badge ${s}">${BADGE_LABEL[s]}</span>`;}
+function langOptSub(o){
+  if(o.val==='none')return'';
+  if(o.val==='toefl_ibt_new'){
+    if(state.program==='doctor')return'<div class="opt-sub">Med: min. 4.0 (Doctoral) / min. 3.5 (Master\'s)&nbsp;&nbsp;/&nbsp;&nbsp;Nurs: criteria not yet determined</div>';
+    return'<div class="opt-sub">Minimum: 3.5</div>';
+  }
+  const mins=LANG_MIN[state.program];
+  if(mins[o.val]===undefined)return'';
+  const unit=o.val==='ielts'?' (overall band)':' points';
+  if(state.program==='doctor')return`<div class="opt-sub">Med: ${LANG_MIN.doctor[o.val]}${unit}&nbsp;&nbsp;/&nbsp;&nbsp;Nurs: ${LANG_MIN.master[o.val]}${unit}</div>`;
+  return`<div class="opt-sub">Minimum: ${mins[o.val]}${unit}</div>`;
+}
 function renderStep(){
   const app=document.getElementById('app');
   const si=state.step,totalS=STEPS.length-1;
@@ -169,8 +192,8 @@ function renderStep(){
   else if(si===4){content=`<div class="step-info">Step 4 of ${totalS-1}</div><div class="q-label">Did you take a leave of absence of one semester or more?</div><div class="q-sub">Leave periods are not counted as schooling time and will be subtracted from your total.</div><div class="opts"><button class="opt ${state.leaveAbsence==='no'?'selected':''}" onclick="pick('leaveAbsence','no')"><div class="opt-radio"></div><div class="opt-text">No — I had no leave of absence</div></button><button class="opt ${state.leaveAbsence==='yes'?'selected':''}" onclick="pick('leaveAbsence','yes')"><div class="opt-radio"></div><div class="opt-text">Yes — I took a leave of absence</div></button></div>${state.leaveAbsence==='yes'?`<div style="margin-top:12px"><div class="q-sub">Total duration of leave:</div><div style="display:flex;align-items:center;gap:8px"><input type="number" min="1" max="60" step="1" value="${state.leaveMonths||''}" oninput="setLeaveMonths(this.value)" placeholder="e.g. 12" style="width:90px;padding:6px 10px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:14px;background:#fff;color:#1a1a18"><span style="font-size:13px;color:#5f5e5a">months</span></div></div>`:''}`;  }
   else if(si===5){
     const mins=LANG_MIN[state.program];
-    content=`<div class="step-info">Step 5 of ${totalS-1}</div><div class="q-label">English language proficiency</div><div class="q-sub">Scores must be dated August 1, 2020 or later. TOEFL My Best™ scores are not accepted.</div><div class="opts" style="margin-bottom:12px">${LANG_OPTS.map(o=>`<button class="opt ${state.langTest===o.val?'selected':''}" onclick="pick('langTest','${o.val}')"><div class="opt-radio"></div><div class="opt-text">${o.label}${o.val!=='none'?(state.program==='doctor'?`<div class="opt-sub">Med: ${LANG_MIN.doctor[o.val]}${o.val==='ielts'?' (overall band)':' points'}&nbsp;&nbsp;/&nbsp;&nbsp;Nurs: ${LANG_MIN.master[o.val]}${o.val==='ielts'?' (overall band)':' points'}</div>`:`<div class="opt-sub">Minimum: ${mins[o.val]}${o.val==='ielts'?' (overall band)':' points'}</div>`):''}
-</div></button>`).join('')}</div>${state.langTest&&state.langTest!=='none'?`<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:#5f5e5a;min-width:64px">Score</span><input type="number" min="0" max="990" step="${state.langTest==='ielts'?'0.5':'1'}" value="${state.langScore}" oninput="state.langScore=this.value;const nb=document.getElementById('next-btn');if(nb)nb.disabled=!canProceed();" placeholder="${state.langTest==='ielts'?'e.g. 6.0':'e.g. 80'}" style="width:110px;padding:6px 10px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:14px;background:#fff;color:#1a1a18"></div><div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:#5f5e5a;min-width:64px">Test date</span><input type="date" value="${state.langDate}" oninput="state.langDate=this.value;renderStep()" style="padding:6px 10px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:14px;background:#fff;color:#1a1a18"></div>${state.langDate&&!isValidDate(state.langDate)?`<div class="error-msg">Score must be from August 1, 2020 or later.</div>`:''}</div>`:''}`;
+    content=`<div class="step-info">Step 5 of ${totalS-1}</div><div class="q-label">English language proficiency</div><div class="q-sub">Scores must be dated ${validityDateDisplay()} or later.</div><div class="opts" style="margin-bottom:12px">${LANG_OPTS.map(o=>`<button class="opt ${state.langTest===o.val?'selected':''}" onclick="pick('langTest','${o.val}')"><div class="opt-radio"></div><div class="opt-text">${o.label}${langOptSub(o)}
+</div></button>`).join('')}</div>${state.langTest&&state.langTest!=='none'?`<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:#5f5e5a;min-width:64px">Score</span><input type="number" min="0" max="${state.langTest==='toefl_ibt_new'?'10':'990'}" step="${state.langTest==='ielts'?'0.5':state.langTest==='toefl_ibt_new'?'0.1':'1'}" value="${state.langScore}" oninput="state.langScore=this.value;const nb=document.getElementById('next-btn');if(nb)nb.disabled=!canProceed();" placeholder="${state.langTest==='ielts'?'e.g. 6.0':state.langTest==='toefl_ibt_new'?'e.g. 4.0':'e.g. 80'}" style="width:110px;padding:6px 10px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:14px;background:#fff;color:#1a1a18"></div><div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:#5f5e5a;min-width:64px">Test date</span><input type="date" value="${state.langDate}" oninput="state.langDate=this.value;renderStep()" style="padding:6px 10px;border:0.5px solid #b4b2a9;border-radius:8px;font-size:14px;background:#fff;color:#1a1a18"></div>${state.langDate&&!isValidDate(state.langDate)?`<div class="error-msg">Score must be from ${validityDateDisplay()} or later.</div>`:''}</div>`:''}`;
   }
   else if(si===6){
     const yr=judgeAcademic(),lg=judgeLang();
