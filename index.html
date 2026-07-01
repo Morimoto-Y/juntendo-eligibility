@@ -205,6 +205,11 @@ function renderStep(){
       const medItems=[{label:'Academic background',...yr},{label:'Language proficiency',...lg}];
       const nursItems=[{label:'Academic background',...yr},{label:'Language proficiency',...lgNurs}];
       resultSections=`<div style="margin-bottom:4px;font-size:13px;font-weight:600;color:#1a1a18">Graduate School of Medicine</div><div class="result-section" style="margin-bottom:16px">${medItems.map(cardHTML).join('')}</div><div style="margin-bottom:4px;font-size:13px;font-weight:600;color:#1a1a18">Graduate School of Nursing</div><div class="result-section">${nursItems.map(cardHTML).join('')}</div>`;
+    } else if(state.langTest==='toefl_ibt_new'){
+      const lgNurs=judgeLang('master');
+      const medItems=[{label:'Academic background',...yr},{label:'Language proficiency',...lg}];
+      const nursItems=[{label:'Academic background',...yr},{label:'Language proficiency',...lgNurs}];
+      resultSections=`<div style="margin-bottom:4px;font-size:13px;font-weight:600;color:#1a1a18">Master's program (Medicine)</div><div class="result-section" style="margin-bottom:16px">${medItems.map(cardHTML).join('')}</div><div style="margin-bottom:4px;font-size:13px;font-weight:600;color:#1a1a18">Master's program (Nursing)</div><div class="result-section">${nursItems.map(cardHTML).join('')}</div>`;
     } else {
       const items=[{label:'Academic background',...yr},{label:'Language proficiency',...lg}];
       resultSections=`<div class="result-section">${items.map(cardHTML).join('')}</div>`;
